@@ -2,7 +2,8 @@
 
 An implementation of mask pooling method for SSL training and feature encoder to train with and generate segment feature representations.
 
-module requirement and version:  
+module requirement and version:    
+
 torch == 1.12.0  
 torchvision == 0.13.0  
 pytorch_lightning == 1.5.4  
