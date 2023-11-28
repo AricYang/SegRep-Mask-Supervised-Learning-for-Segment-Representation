@@ -91,7 +91,7 @@ normalize: dict = {'mean': [0.485, 0.456, 0.406], 'std': [0.229, 0.224, 0.225]}
 # Adjust crop size to fit your image size
 transform_position = torchvision.transforms.Compose([
     T.RandomResizedCrop(size=512, scale=(0.3, 1.0)),
-    random_rotation_transform(rr_prob=0.5, rr_degrees = 90),
+    random_rotation_transform(rr_prob=0.5, rr_degrees = None),
     torchvision.transforms.RandomHorizontalFlip(p=0.5),
     torchvision.transforms.RandomVerticalFlip(p=0.5),
 ])
@@ -131,6 +131,8 @@ class TiCo_MP(pl.LightningModule):
     def __init__(self):
         super().__init__()
         resnet = torchvision.models.resnet18()
+        # if initialized with imagenet weight
+        # resnet = torchvision.models.resnet18(weights='IMAGENET1K_V1')
         
         # truncate FC and GAP layer
         self.backbone = nn.Sequential(*list(resnet.children())[:-2])
@@ -184,7 +186,7 @@ class TiCo_MP(pl.LightningModule):
 
 
 # load model
-model = TiCo()
+model = TiCo_MP()
 
 # to load checkpoint parameters, use the following code, example path of checkpoint = glob.glob('./LOG_DIR/lightning_logs/version_0/checkpoints/*')[0]
 # checkpoint will save once every epoch, when a training is interruptted or reached maximum epochs, the next training session's log will save in a new 'version_*' folder
