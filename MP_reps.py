@@ -94,11 +94,9 @@ class encoder(pl.LightningModule):
         resnet = torchvision.models.resnet18()
         
         # truncate FC layer
-        self.backbone = nn.Sequential(*list(resnet.children())[:-1])
+        self.backbone = nn.Sequential(*list(resnet.children())[:-2])
         self.projection_head = TiCoProjectionHead(512, 512, 128)
-        self.l2_norm = F.normalize
 
-    
         # maskpool for representation
         avgpool = torch.nn.AvgPool2d(kernel_size=3, stride=2, padding=1, ceil_mode=False)
         self.avgpool_5 = nn.Sequential(avgpool,
@@ -106,11 +104,6 @@ class encoder(pl.LightningModule):
                                        avgpool,
                                        avgpool,
                                        avgpool)
-        
-    def maskpool(self, y):
-        y = self.avgpool_5(y)
-        y = torch.round(y, decimals = 3)
-        return y
 
 
 # In[12]:
@@ -146,10 +139,10 @@ with torch.no_grad():
         img = img.to(device)
         mask = mask.to(device)
         
-        mask = model.maskpool(mask)
-        emb = model.backbone[:-1](img)
+        mask = model.avgpool_5(mask)
+        emb = model.backbone(img)
         emb = (emb*mask).sum([2,3])
-        emb = model.l2_norm(emb, p=2, dim=1)
+        emb = F.normalize(emb, p=2, dim=1)
         embeddings.append(emb.cpu().detach())
 
     embeddings = torch.cat(embeddings, 0)
