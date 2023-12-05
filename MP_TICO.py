@@ -131,51 +131,38 @@ class TiCo_MP(pl.LightningModule):
     def __init__(self):
         super().__init__()
         resnet = torchvision.models.resnet18()
-        # if initialized with imagenet weight
-        # resnet = torchvision.models.resnet18(weights='IMAGENET1K_V1')
         
-        # truncate FC and GAP layer
         self.backbone = nn.Sequential(*list(resnet.children())[:-2])
         self.projection_head = TiCoProjectionHead(512, 512, 128)
-        self.criterion = TiCoLoss(gather_distributed=True)
-        self.l2_norm = F.normalize
-        
-        # mask pooling layer
+        self.criterion = TiCoLoss(gather_distributed=True,
+                                 )
         avgpool = torch.nn.AvgPool2d(kernel_size=3, stride=2, padding=1, ceil_mode=False)
         self.avgpool_5 = nn.Sequential(avgpool,
                                        avgpool,
                                        avgpool,
                                        avgpool,
                                        avgpool)
-        
-    def maskpool(self, y):
-        y = self.avgpool_5(y)
-        y = torch.round(y, decimals = 3)
-        return y
     
-    def forward(self, x):
+    def forward(self, x, y):
+        y = self.avgpool_5(y)
         x = self.backbone(x)
+        x = (x*y).sum([2,3])
+        x = F.normalize(x, p=2, dim=1)
         return x
 
     def training_step(self, batch, batch_index):
         ((x0,x1),(y0,y1)) = batch[0]
         
-        y0 = self.maskpool(y0)
-        y1 = self.maskpool(y1)
-        
-        x0 = self.forward(x0)
-        # multiply feature map with pooled mask element-wise and sum feature-wise
-        x0 = (x0*y0).sum([2,3])
-        x0 = self.l2_norm(x0, p=2, dim=1)
+        x0 = self.forward(x0,y0)
         z0 = self.projection_head(x0)
         
-        x1 = self.forward(x1)
-        x1 = (x1*y1).sum([2,3])
-        x1 = self.l2_norm(x1, p=2, dim=1)
+        x1 = self.forward(x1,y1)
         z1 = self.projection_head(x1)
         
-        loss = self.criterion(z0, z1)
+        loss = self.criterion(z0,z1)
+        
         return loss
+
 
     def configure_optimizers(self):
         optimizer = flash.core.optimizers.LARS(self.parameters(), lr=1.2) # LARS for large batch (Zhu, 2022); lr = 0.3*batch size/256 (Ciga, 2022; Stacke, 2022) 
