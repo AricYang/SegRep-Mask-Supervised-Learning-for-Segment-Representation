@@ -10,6 +10,6 @@ pytorch_lightning == 1.5.4
 numpy == 1.22.3  
 PIL.Image == 9.5.0  
 lightly == 1.4.1  
-lightning-flash == 0.8.1.post0
-joblib == 1.2.0
-tqdm
+lightning-flash == 0.8.1.post0   
+joblib == 1.2.0  
+tqdm  
