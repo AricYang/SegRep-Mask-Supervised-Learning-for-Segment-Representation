@@ -140,21 +140,17 @@ if __name__ == "__main__":
     embeddings = []
     model.eval()
     with torch.no_grad():
-        try:
-            if args.no_mask:
-                for img, _, _ in tqdm(dataloader):
-                    img = img.to(device)
-                    emb = model.ori_forward(img)
-                    embeddings.append(emb.cpu().detach())
-            else:
-                for (img, mask), _, _ in tqdm(dataloader):
-                    img = img.to(device)
-                    mask = mask.to(device)
-                    emb = model.segrep_forward(img,mask)
-                    embeddings.append(emb.cpu().detach())
-        except Exception as e:
-                print(f"Error processing batch: {e}")
-    
+        if args.no_mask:
+            for img, _, _ in tqdm(dataloader):
+                img = img.to(device)
+                emb = model.ori_forward(img)
+                embeddings.append(emb.cpu().detach())
+        else:
+            for (img, mask), _, _ in tqdm(dataloader):
+                img = img.to(device)
+                mask = mask.to(device)
+                emb = model.segrep_forward(img,mask)
+                embeddings.append(emb.cpu().detach())
         embeddings = torch.cat(embeddings, 0)
         rep = embeddings.numpy()
 
