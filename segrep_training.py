@@ -54,6 +54,8 @@ def parse_args():
                         help='Strategy controls the model distribution across training, evaluation, and prediction (default: "ddp_find_unused_parameters_false")')
     parser.add_argument('--no_sync_batchnorm', action='store_false',
                         help='Trun off batchnorm. Please enable this argument while training with a single device.')
+    parser.add_argument('--no_gather_distributed', action='store_false',
+                        help='assign False to gather_distribute in TiCoLoss. Please enable this argument while training with a single device.')
     parser.add_argument('--grad_accumulate', type=int, default=32,
                         help='Gradient accumulation (default: 32)')
     parser.add_argument('--num_workers', type=int, default=16,
@@ -130,50 +132,22 @@ class Dataset(BaseDataset):
 
 
 
-class Ori_TiCo(pl.LightningModule):
-    def __init__(self):
-        super().__init__()
-        resnet = torchvision.models.resnet18()
-        
-        # Truncate FC and GAP layer in the network
-        self.backbone = nn.Sequential(*list(resnet.children())[:-2])
-        self.projection_head = TiCoProjectionHead(512, 512, 128)
-        self.criterion = TiCoLoss(gather_distributed=True)
-        
-    def forward(self, x):
-        x = self.backbone(x)
-        x = x.sum([2,3])
-        x = F.normalize(x, p=2, dim=1)
-        
-        return x
-
-    def training_step(self, batch, batch_index):
-        (x0,x1) = batch[0]
-        
-        x0 = self.forward(x0)
-        z0 = self.projection_head(x0)
-        
-        x1 = self.forward(x1)
-        z1 = self.projection_head(x1)
-        
-        loss = self.criterion(z0, z1)
-        return loss
-
-    def configure_optimizers(self):
-        optimizer = flash.core.optimizers.LARS(self.parameters(), lr=1.2) # LARS for large batch (Zhu, 2022); lr = 0.3*batch size/256 (Ciga, 2022; Stacke, 2022) 
-        return optimizer
-
-
 
 class SegRep_TiCo(pl.LightningModule):
     def __init__(self):
         super().__init__()
         resnet = torchvision.models.resnet18()
-        
+    
         # Truncate FC and GAP layer in the network
         self.backbone = nn.Sequential(*list(resnet.children())[:-2])
         self.projection_head = TiCoProjectionHead(512, 512, 128)
-        self.criterion = TiCoLoss(gather_distributed=True)
+
+        # gather_distributed should be True if train with more than 1 device. 
+        # args.no_gather_distributed returns True by default, parse --no_gather_distributed in command line to set to False.
+        gather_distributed = args.no_gather_distributed
+        self.criterion = TiCoLoss(gather_distributed=gather_distributed)
+
+        # avgpool downsize the input tensor by half, e.g. (x, 512, 512) -> (x, 256, 256)
         self.avgpool = torch.nn.AvgPool2d(kernel_size=3, stride=2, padding=1, ceil_mode=False)
         
     def forward(self, x, y):
@@ -207,7 +181,43 @@ class SegRep_TiCo(pl.LightningModule):
         return loss
 
     def configure_optimizers(self):
-        optimizer = flash.core.optimizers.LARS(self.parameters(), lr=1.2) # LARS for large batch (Zhu, 2022); lr = 0.3*batch size/256 (Ciga, 2022; Stacke, 2022) 
+        # LARS for large batch (Zhu, 2022); lr = 0.3*batch size/256 (Ciga, 2022; Stacke, 2022)
+        optimizer = flash.core.optimizers.LARS(self.parameters(), lr=1.2)
+        return optimizer
+
+
+
+class Ori_TiCo(pl.LightningModule):
+    def __init__(self):
+        super().__init__()
+        resnet = torchvision.models.resnet18()
+        
+        # Truncate FC and GAP layer in the network
+        self.backbone = nn.Sequential(*list(resnet.children())[:-2])
+        self.projection_head = TiCoProjectionHead(512, 512, 128)
+        self.criterion = TiCoLoss(gather_distributed=True)
+        
+    def forward(self, x):
+        x = self.backbone(x)
+        x = x.sum([2,3])
+        x = F.normalize(x, p=2, dim=1)
+        
+        return x
+
+    def training_step(self, batch, batch_index):
+        (x0,x1) = batch[0]
+        
+        x0 = self.forward(x0)
+        z0 = self.projection_head(x0)
+        
+        x1 = self.forward(x1)
+        z1 = self.projection_head(x1)
+        
+        loss = self.criterion(z0, z1)
+        return loss
+
+    def configure_optimizers(self):
+        optimizer = flash.core.optimizers.LARS(self.parameters(), lr=1.2)
         return optimizer
 
 
@@ -246,7 +256,7 @@ if __name__ == "__main__":
     checkpoint_callback = ModelCheckpoint(
         dirpath=args.log_dir,
         filename='{epoch}',
-        save_top_k=1,  # Save checkpoint every checkpoint
+        save_top_k=-1,  # Preserved every checkpoint
         every_n_epochs=1  # Save every 1 epoch
     )
 
