@@ -13,13 +13,11 @@ import torch.nn.functional as F
 import numpy as np
 import glob
 from PIL import Image
-import copy
 
 from torch.utils.data import DataLoader
 from torch.utils.data import Dataset as BaseDataset
 from lightly.loss.tico_loss import TiCoLoss
 from lightly.models.modules.heads import TiCoProjectionHead
-from pytorch_lightning import seed_everything
 from tqdm import tqdm
 import joblib
 
