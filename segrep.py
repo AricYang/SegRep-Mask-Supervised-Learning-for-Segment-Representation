@@ -14,6 +14,7 @@ import numpy as np
 import glob
 from PIL import Image
 import random
+import os
 
 from lightly.transforms.gaussian_blur import GaussianBlur
 from lightly.transforms.rotation import random_rotation_transform
@@ -89,8 +90,11 @@ class Dataset(BaseDataset):
             return (image_v1, image_v2), 0, filepath
 
         else:    
-            # Input image should be in shape of (R, G, B, alpha), where alpha channel stores mask information (target: 255, non-target: 0)
+            # Input image should be in shape of (H, W, 4), where 4 value channels are(R, G, B, alpha)
+            # The alpha channel stores mask information (target: 255, non-target: 0)
             rgba_img = Image.open(self.image_dir[idx])
+            if np.asarray(rgba_img)).shape[2] < 4:
+                raise ValueError(f"Expect image shape to be (H, W, 4), got {np.asarray(rgba_img)).shape} instead.")
     
             # RGBA image undergoes positional transformation first to align the status of crop, rotation and flip between image and mask
             rgba_img_v1 = self.preprocessing_position(rgba_img)
@@ -138,10 +142,10 @@ class Ori_TiCo(pl.LightningModule):
     def training_step(self, batch, batch_index):
         (x0,x1) = batch[0]
         
-        x0 = self.forward(x0, y0)
+        x0 = self.forward(x0)
         z0 = self.projection_head(x0)
         
-        x1 = self.forward(x1, y1)
+        x1 = self.forward(x1)
         z1 = self.projection_head(x1)
         
         loss = self.criterion(z0, z1)
