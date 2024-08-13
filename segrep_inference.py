@@ -84,7 +84,8 @@ class Encoder(pl.LightningModule):
         self.projection_head = TiCoProjectionHead(512, 512, 128)
         self.criterion = TiCoLoss(gather_distributed=True)
         self.avgpool = torch.nn.AvgPool2d(kernel_size=3, stride=2, padding=1, ceil_mode=False)
-        
+
+    
     def segrep_forward(self, x, y):
         x = self.backbone(x)
         for i in range(5):
@@ -93,7 +94,8 @@ class Encoder(pl.LightningModule):
         x = F.normalize(x, p=2, dim=1)
         
         return x
-        
+
+    
     def ori_forward(self, x):    
         x = self.backbone(x)
         x = x.sum([2,3])
@@ -136,7 +138,7 @@ if __name__ == "__main__":
         num_workers=args.num_workers,
     )
 
-    # Inferecing the representations
+    # Inference the representations
     embeddings = []
     model.eval()
     with torch.no_grad():
@@ -154,7 +156,7 @@ if __name__ == "__main__":
         embeddings = torch.cat(embeddings, 0)
         rep = embeddings.numpy()
 
-    # Save the inferenced representation as .pkl file
+    # Save the representations as .pkl file
     try:
         joblib.dump(rep, 'inferenced_reps.pkl')
         print("Embeddings saved successfully.")
