@@ -44,8 +44,16 @@ def parse_args():
                         help='Batch size (default: 32)')
     parser.add_argument('--epochs', type=int, default=23,
                         help='Number of epochs (default: 23)')
+    parser.add_argument('--accelerator', type=str, 
+                        default='gpu',
+                        help='Accelerators connect a Lightning Trainer to arbitrary accelerators (CPUs, GPUs, TPUs, etc), default: "gpu"')
     parser.add_argument('--devices', nargs='+', type=int, default=[0, 1, 2],
                         help='List of GPU devices (default: [0, 1, 2])')
+    parser.add_argument('--strategy', type=str, 
+                        default='ddp_find_unused_parameters_false',
+                        help='Strategy controls the model distribution across training, evaluation, and prediction (default: "ddp_find_unused_parameters_false")')
+    parser.add_argument('--no_sync_batchnorm', action='store_false',
+                        help='Trun off batchnorm. Please enable this argument while training with a single device.')
     parser.add_argument('--grad_accumulate', type=int, default=32,
                         help='Gradient accumulation (default: 32)')
     parser.add_argument('--num_workers', type=int, default=16,
@@ -307,13 +315,14 @@ if __name__ == "__main__":
     if resume_checkpoint is not None and not os.path.isfile(resume_checkpoint):
         raise FileNotFoundError(f"Checkpoint file not found: {resume_checkpoint}")
 
+    sync_batchnorm = args.no_sync_batchnorm
     
     trainer = pl.Trainer(max_epochs=args.epochs, 
-                         accelerator = 'gpu',
-                         devices = args.devices,
-                         strategy="ddp_find_unused_parameters_false",
+                         accelerator=args.accelerator,
+                         devices=args.devices,
+                         strategy=args.strategy,
                          default_root_dir=args.log_dir,
-                         sync_batchnorm=True,
+                         sync_batchnorm=sync_batchnorm,
                          deterministic=True,
                          callbacks=[checkpoint_callback],
                          resume_from_checkpoint=resume_checkpoint,
