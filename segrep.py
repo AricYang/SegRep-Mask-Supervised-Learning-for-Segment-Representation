@@ -93,7 +93,7 @@ class Dataset(BaseDataset):
             # Input image should be in shape of (H, W, 4), where 4 value channels are(R, G, B, alpha)
             # The alpha channel stores mask information (target: 255, non-target: 0)
             rgba_img = Image.open(self.image_dir[idx])
-            if np.asarray(rgba_img)).shape[2] < 4:
+            if (np.asarray(rgba_img)).shape[2] < 4:
                 raise ValueError(f"Expect image shape to be (H, W, 4), got {np.asarray(rgba_img).shape} instead.")
     
             # RGBA image undergoes positional transformation first to align the status of crop, rotation and flip between image and mask
