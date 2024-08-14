@@ -143,11 +143,13 @@ if __name__ == "__main__":
     model.eval()
     with torch.no_grad():
         if args.no_mask:
+            print('Start inferencing with no masking...')
             for img, _, _ in tqdm(dataloader):
                 img = img.to(device)
                 emb = model.ori_forward(img)
                 embeddings.append(emb.cpu().detach())
         else:
+            print('Start inferencing with SegRep...')
             for (img, mask), _, _ in tqdm(dataloader):
                 img = img.to(device)
                 mask = mask.to(device)
