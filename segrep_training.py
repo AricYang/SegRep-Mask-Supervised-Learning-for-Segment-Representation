@@ -154,7 +154,7 @@ class SegRep_TiCo(pl.LightningModule):
         # Pass image tensor through the network, generate feature maps. Shape: (3, H, W) -> (512, H/(2**5), W/(2**5)) 
         x = self.backbone(x)
         
-        # Downsize the mask tensor 5 times to match the size of feature maps. Shape (1, H, W) -> (1, H/(2**5), W/(2**5))
+        # Downsize the mask tensor x times (5 times for ResNet 18) to match the size of feature maps. Shape (1, H, W) -> (1, H/(2**5), W/(2**5))
         for i in range(5):
             y = self.avgpool(y)
             
