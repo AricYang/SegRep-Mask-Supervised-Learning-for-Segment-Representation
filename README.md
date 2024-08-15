@@ -6,13 +6,23 @@ SegRep is a Self-Supervised Learning method incorporated with 2 layers of maskin
 
 This dual masking strategy can enable extracted features to only consider context from target pixels, omit even the activation originated from masked value.
 
-SegRep's masking strategy can be incorporate with SSL, limiting the model's generalization to focus on target context defined by masks.  
+SegRep can be:  
+  - Incorporate in the feature extraction steps in the process of SSL, limiting the model to generalize on target context defined by masks.
+  - Incorporate with a trained/pretrained model's feature extraction step to extract segment representation.
 
 # Where do mask come from?  
 
 Mask can be obtain from either segmentation models or manual annotation, or what ever mechanism that label the pixel with a specific tag.  
 e.g. Specific organ/tissue/cell within medical images, where they can be segmented with deep learning models or manual annotated with medical professionals.  
 
+# What's the point of SegRep?
+
+In the traditional feature extraction process of deep learning, every pixels within an image contributes to the feature activations. 
+This could lead to problems like:
+  - Contextual bias or spurious correlations in general imaging, e.g. classification of cows influenced by the green field in the background.
+  - Lack of explainability of model's prediction, e.g. a group of pathological images classified as high risk of specific diagnosis, but couldn't explain what structure/tissue/cell contribute to the prediction.
+
+SegRep's purpose is to extract the features of specific objects with arbitrary boundaries defined by the mask, enabling the exteaction of segment representation.
 
 # Implemented modules:  
 
