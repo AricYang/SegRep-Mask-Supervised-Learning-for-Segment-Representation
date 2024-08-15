@@ -36,7 +36,7 @@ lightning-flash == 0.8.1.post0
 joblib == 1.2.0  
 tqdm  
 
-# Usage (🚧README Under construction🚧)
+# Usage (🚧Under construction🚧)
 ## segrep_training.py
 This script trains a SegRep-SSL model under the framework of pytorch-lightning.
 ResNet 18, TiCo Loss, LARS optimizer is used in this script; if you want to use other backbone, loss or optimizer, you'll have to modify the script. 
