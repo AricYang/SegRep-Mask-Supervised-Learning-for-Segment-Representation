@@ -42,9 +42,7 @@ This script trains a SegRep-SSL model under the framework of pytorch-lightning.
 ResNet 18, TiCo Loss, LARS optimizer is used in this script;   
 if you want to use other backbone, loss or optimizer, you'll have to modify the script.  
 
-'''
-python segrep_training.py 
-'''  
+'''python segrep_training.py'''  
 
 | Input Variables| Description                           |
 | -------------- | ------------------------------------- |
