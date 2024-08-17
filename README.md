@@ -129,3 +129,19 @@ python segrep_training.py --devices [0, 1, 2]
 
 ## `--strategy`:
 
+## `--grad_accumulate`:
+Accumulate n batches of gradient before optimization step, specify 1 if no gradient accumulation needed.
+(Default: `32`)
+```
+python segrep_training.py --grad_accumulate 16
+```
+
+## `--debug`:
+Debug function for dataset output, save the output images and mask to confirm if dataset output is working properly.
+Automatically exit the code when outputs are saved.
+```
+python segrep_training.py --debug
+```
+
+## `--resume_checkpoint`:
+
