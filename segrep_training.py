@@ -264,7 +264,7 @@ if __name__ == "__main__":
 
     
     # a list of directories to your training image, modify it if subdirectory exists, e.g. sorted(glob.glob(f'{args.data_path}/*/*.png'))
-    image_files = sorted(glob.glob(f'{args.data_path}/*.png'))
+    image_files = sorted(glob.glob({args.data_path}))
 
     
     dataset = Dataset(image_files, 
