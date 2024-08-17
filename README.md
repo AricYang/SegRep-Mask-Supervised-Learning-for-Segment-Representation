@@ -64,3 +64,10 @@ python segrep_training.py
 | `--debug`                 | Enable debug mode to inspect dataset output                                            |
 | `--resume_checkpoint`     | Resume training from a previously saved checkpoint                                     |
 
+## `--data_path`:
+Specify the directory to your dataset, use wildcard to specify the subdirectories if they exist.
+Image format should also be specify, e.g.  
+```
+python segrep_training.py --data_path /data/work/image_dir/*/*.png
+```
+
