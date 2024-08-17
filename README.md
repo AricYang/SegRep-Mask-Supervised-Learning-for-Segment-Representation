@@ -127,7 +127,8 @@ Specify the devices you want to use.
 python segrep_training.py --devices [0, 1, 2]
 ```
 
-## `--strategy`:
+🚧inputs that involve in ddp training will be simplify🚧
+
 
 ## `--grad_accumulate`:
 Accumulate n batches of gradient before optimization step, specify 1 if no gradient accumulation needed.
@@ -144,4 +145,7 @@ python segrep_training.py --debug
 ```
 
 ## `--resume_checkpoint`:
-
+Resume a previous trained state with a specified path to the checkpoint file.
+```
+python segrep_training.py --resume_checkpoint ./logs/epoch=15.ckpt
+```
