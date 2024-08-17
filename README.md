@@ -42,24 +42,25 @@ This script trains a SegRep-SSL model under the framework of pytorch-lightning.
 ResNet 18, TiCo Loss, LARS optimizer is used in this script;   
 if you want to use other backbone, loss or optimizer, you'll have to modify the script.  
 
-''' 
-python segrep_training.py 
-'''  
+```
+python segrep_training.py  
+```
 
-| Input Variables| Description                           |
-| -------------- | ------------------------------------- |
-| --data_path      | Path to the dataset directory    |
-| --log_dir      | Directory to save .ckpt file    |
-| --no_mask      | Enable training script to proceed without masking, original SSL so to speak    |
-| --crop_size      | Path to the dataset directory    |
-| --batch_size      | Path to the dataset directory    |
-| --epochs      | Path to the dataset directory    |
-| --num_workers      |                              |
-| --accelerator      | Path to the dataset directory    |
-| --devices      | Path to the dataset directory    |
-| --strategy      | Path to the dataset directory    |
-| --no_sync_batchnorm      | Path to the dataset directory    |
-| --no_gather_distributed      |
-| --grad_accumulate      |
-| --debug      |
-| --resume_checkpoint      |
+| Input Variables           | Description                                                                            |
+| ------------------------- | -------------------------------------------------------------------------------------- |
+| `--data_path`             | Path to the dataset directory                                                          |
+| `--log_dir`               | Directory to save `.ckpt` files                                                        |
+| `--no_mask`               | Enable training script to proceed without masking, original SSL so to speak            |
+| `--crop_size`             | Input size for cropping transformation                                                 |
+| `--batch_size`            | The desired batch size                                                                 |
+| `--epochs`                | The number of epochs for training                                                      |
+| `--num_workers`           | Number of workers to use                                                               |
+| `--accelerator`           | Type of accelerator being used                                                         |
+| `--devices`               | Specific device(s) to use                                                              |
+| `--strategy`              | Parallel training strategy to use                                                      |
+| `--no_sync_batchnorm`     | Disable syncing of batch normalization (turn on when training with multiple devices)   |
+| `--no_gather_distributed` | Disable gathering for distributed loss function (use when training with DDP)           |
+| `--grad_accumulate`       | Number of batches to accumulate before an optimization step                            |
+| `--debug`                 | Enable debug mode to inspect dataset output                                            |
+| `--resume_checkpoint`     | Resume training from a previously saved checkpoint                                     |
+
