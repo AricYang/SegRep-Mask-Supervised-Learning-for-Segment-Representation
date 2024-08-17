@@ -38,7 +38,7 @@ def parse_args():
     parser.add_argument('--no_mask', action='store_true',
                         help='Enable training script to proceed without masking, original SSL so to speak')
     parser.add_argument('--log_dir', type=str, 
-                        default='designated directory to save your log',
+                        default='./logs',
                         help='Directory to save logs')
     parser.add_argument('--batch_size', type=int, default=32,
                         help='Batch size (default: 32)')
@@ -324,6 +324,12 @@ if __name__ == "__main__":
     resume_checkpoint = args.resume_checkpoint
     if resume_checkpoint is not None and not os.path.isfile(resume_checkpoint):
         raise FileNotFoundError(f"Checkpoint file not found: {resume_checkpoint}")
+
+    if not os.path.isdir(args.log_dir):
+      os.makedirs(args.log_dir)
+      print("Directory created successfully")
+    else:
+      print("Logs will save to existed directory")
 
     sync_batchnorm = args.no_sync_batchnorm
     
