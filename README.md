@@ -66,8 +66,12 @@ python segrep_training.py
 
 ## `--data_path`:
 Specify the directory to your dataset, use wildcard to specify the subdirectories if they exist.
-Image format should also be specify, e.g.  
+Use wildcard to specify all the file under the directory(subdirectories), format should also be specify, 
+e.g.  
 ```
 python segrep_training.py --data_path /data/work/image_dir/*/*.png
 ```
+
+## `--log_dir`:  
+
 
