@@ -127,7 +127,7 @@ Specify the devices you want to use.
 python segrep_training.py --devices [0, 1, 2]
 ```
 
-🚧inputs that involve in ddp training will be simplify🚧
+## 🚧inputs that involve in ddp training will be simplify🚧
 
 
 ## `--grad_accumulate`:
