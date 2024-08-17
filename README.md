@@ -69,9 +69,10 @@ Specify the directory to your dataset, use wildcard to specify the subdirectorie
 Use wildcard to specify all the file under the directory(subdirectories), format should also be specify, 
 e.g.  
 ```
-python segrep_training.py --data_path /data/work/image_dir/*/*.png
+python segrep_training.py --data_path /work/project/image_dir/*/*.png
 ```
 
 ## `--log_dir`:  
-
-
+Directory you want to save your checkpoint file(.ckpt).
+```
+python segrep.training.py --log_dir /work/project/log_dir
