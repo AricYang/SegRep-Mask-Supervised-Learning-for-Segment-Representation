@@ -93,35 +93,39 @@ python segrep_training.py --crop_size 256
 ```
 
 ## `--batch_size`:
-Specify your designated batch size for your training.
+Specify your designated batch size for your training.  
 (Default: `32`)
 ```
 python segrep_training.py --batch_size 16
 ```
 
 ## `--epochs`:
-Specify your designated maximum training epochs.
+Specify your designated maximum training epochs.  
 (Default: `23`)  
 ```
 python segrep_training.py --epochs 100
 ```  
 
 ## `--num_workers`:
-Specify your designated number of workers.
+Specify your designated number of workers.  
 (Default: `16`)
 ```
 python segrep_training.py --num_workers 8
 ```
 
 ## `--accelerator`:
-Specify the accelerator you want to use; cpu, gpu, tpu, ipu.
+Specify the accelerator you want to use; cpu, gpu, tpu, ipu.  
 (Default: `gpu`)
 ```
 python segrep_training.py --accelerator gpu
 ```
 
 ## `--devices`:
-Specify the devices you want to use.
+Specify the devices you want to use.  
 (Default: `[0, 1, 2]`
 ```
-python segrep_training.py --devices [
+python segrep_training.py --devices [0, 1, 2]
+```
+
+## `--strategy`:
+
