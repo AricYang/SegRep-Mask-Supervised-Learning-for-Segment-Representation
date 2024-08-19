@@ -113,7 +113,7 @@ if __name__ == "__main__":
     ])
 
     # Modify it if subdirectory exists, e.g. sorted(glob.glob(f'{args.data_path}/*/*.png'))
-    image_dir = sorted(glob.glob(f'{args.data_path}/*.png'))
+    image_dir = sorted(glob.glob('{args.data_path}'))
 
     dataset = Dataset(image_dir,
                       no_mask = args.no_mask,
