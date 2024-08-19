@@ -62,7 +62,7 @@ python segrep_training.py
 | `--debug`                 | Enable debug mode to inspect dataset output                                            |
 | `--resume_checkpoint`     | Resume training from a previously saved checkpoint                                     |
 
-## `--data_path`:
+`--data_path`:  
 Specify the directory to your dataset, use wildcard to specify the subdirectories if they exist.
 Use wildcard to specify all the file under the directory(subdirectories), format should also be specify, 
 e.g.  
@@ -70,34 +70,34 @@ e.g.
 python segrep_training.py --data_path /work/project/image_dir/*/*.png
 ```
 
-## `--log_dir`:  
+`--log_dir`:   
 Directory you want to save your checkpoint file(.ckpt).  
 (Default: `./logs`)
 ```
 python segrep.training.py --log_dir /work/project/log_dir
 ```
 
-## `--no_mask`:
+`--no_mask`:  
 Add this command if you want to train an original SSL for reference (no masking).
 ```
 python segrep.training.py --no_mask
 ```
 
-## `--crop_size`:
+`--crop_size`:  
 Specify the size of your input image for random cropping transformation, e.g. 512 for 512x512 size image.  
 (Default; `512`)
 ```
 python segrep_training.py --crop_size 256
 ```
 
-## `--batch_size`:
+`--batch_size`:  
 Specify your designated batch size for your training.  
 (Default: `32`)
 ```
 python segrep_training.py --batch_size 16
 ```
 
-## `--lars_lr`:
+`--lars_lr`:  
 Specify your learning rate for LARS optimizer. 
 reference: LARS for large batch (Zhu, 2022); lr = 0.3*batch size/256 (Ciga, 2022; Stacke, 2022)  
 (Default: `1.2`)
@@ -105,35 +105,35 @@ reference: LARS for large batch (Zhu, 2022); lr = 0.3*batch size/256 (Ciga, 2022
 python segrep_training.py --lars_lr 1.2
 ```
 
-## `--epochs`:
+`--epochs`:  
 Specify your designated maximum training epochs.  
 (Default: `23`)  
 ```
 python segrep_training.py --epochs 100
 ```  
 
-## `--num_workers`:
+`--num_workers`:  
 Specify your designated number of workers.  
 (Default: `16`)
 ```
 python segrep_training.py --num_workers 8
 ```
 
-## `--accelerator`:
+`--accelerator`:  
 Specify the accelerator you want to use; cpu, gpu, tpu, ipu.  
 (Default: `gpu`)
 ```
 python segrep_training.py --accelerator gpu
 ```
 
-## `--devices`:
+`--devices`:  
 Specify the devices you want to use. (reference: https://lightning.ai/docs/pytorch/stable/accelerators/gpu_basic.html)  
 (Default: `[0, 1, 2]`)
 ```
 python segrep_training.py --devices [0, 1, 2]
 ```
 
-## `--one_device`:
+`--one_device`:  
 Add this command if you are training with a single device, this line deal with settings of trainer strategy, batchnorm syncing and gather distributed of loss function.  
 If you wish to mannually modify these setting, please modify the code directly.
 ```
@@ -141,27 +141,28 @@ python segrep_training.py --one_device
 ```
 
 
-## `--grad_accumulate`:
+`--grad_accumulate`:  
 Accumulate n batches of gradient before optimization step, specify 1 if no gradient accumulation needed.
 (Default: `32`)
 ```
 python segrep_training.py --grad_accumulate 16
 ```
 
-## `--debug`:
+`--debug`:  
 Debug function for dataset output, save the output images and mask to confirm if dataset output is working properly.
 Automatically exit the code when outputs are saved.
 ```
 python segrep_training.py --debug
 ```
 
-## `--resume_checkpoint`:
+`--resume_checkpoint`:  
 Resume a previous trained state with a specified path to the checkpoint file.
 ```
 python segrep_training.py --resume_checkpoint ./logs/epoch=15.ckpt
 ```
 
 ## 🔔 Use space to seperate multiple input variables: 🔔  
+e.g.  
 ```
 python segrep_training.py --log_dir /work/project/log_dir --crop_size 256 --devices [0, 1] --resume_checkpoint ./logs/epoch=15.ckpt
 ```
@@ -181,7 +182,7 @@ python segrep_inference.py
 | `--device`                | Specify 1 device to inference                                                          |
 | `--checkpoint_dir`        | dir of checkpoint file of trained model                                                |
   
-## `--data_path`:
+`--data_path`:  
 Specify the directory to your dataset, use wildcard to specify the subdirectories if they exist.
 Use wildcard to specify all the file under the directory(subdirectories), format should also be specify, 
 e.g.  
@@ -189,33 +190,34 @@ e.g.
 python segrep_inference.py --data_path /work/project/image_dir/*/*.png
 ```
 
-## `--no_mask`:
+`--no_mask`:  
 Add this command if you want to inference with original encoder(no masking).
 ```
 python segrep.inference.py --no_mask
 ```
 
-## `--num_workers`:
+`--num_workers`:  
 Specify your designated number of workers.  
 (Default: `16`)
 ```
 python segrep_inference.py --num_workers 8
 ```
 
-## `--device`:
+`--device`:  
 Specify the device you want to use.
 (Default: `cuda:0`)
 ```
 python segrep_inference.py --device cuda:0
 ```
 
-## `--checkpoint_dir`:
+`--checkpoint_dir`:  
 Specify the checkpoint directory to load for your encoder.
 ```
 python segrep_inference.py --checkpoint_dir ./logs/epoch=15.ckpt
 ```
 
 ## 🔔 Use space to seperate multiple input variables: 🔔  
+e.g.  
 ```
 python segrep_inference.py --data_path /work/project/image_dir/*/*.png --num_workers 8 --device cuda:0 --checkpoint_dir ./logs/epoch=15.ckpt
 ```
