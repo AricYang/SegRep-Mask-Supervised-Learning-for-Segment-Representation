@@ -36,7 +36,7 @@ lightning-flash == 0.8.1.post0
 joblib == 1.2.0  
 tqdm  
 
-# Usage (🚧Under construction🚧)
+# Usage
 ## segrep_training.py
 This script trains a SegRep-SSL model under the framework of pytorch-lightning.  
 ResNet 18, TiCo Loss, LARS optimizer is used in this script;   
@@ -53,6 +53,7 @@ python segrep_training.py
 | `--no_mask`               | Enable training script to proceed without masking, original SSL so to speak            |
 | `--crop_size`             | Input size for cropping transformation                                                 |
 | `--batch_size`            | The desired batch size                                                                 |
+| `--lars_lr`               | Set the learning rate for LARS optimizer                                               |
 | `--epochs`                | The number of epochs for training                                                      |
 | `--num_workers`           | Number of workers to use                                                               |
 | `--accelerator`           | Type of accelerator being used                                                         |
@@ -94,6 +95,14 @@ Specify your designated batch size for your training.
 (Default: `32`)
 ```
 python segrep_training.py --batch_size 16
+```
+
+## `--lars_lr`:
+Specify your learning rate for LARS optimizer. 
+reference: LARS for large batch (Zhu, 2022); lr = 0.3*batch size/256 (Ciga, 2022; Stacke, 2022)  
+(Default: `1.2`)
+```
+python segrep_training.py --lars_lr 1.2
 ```
 
 ## `--epochs`:
@@ -150,4 +159,63 @@ python segrep_training.py --debug
 Resume a previous trained state with a specified path to the checkpoint file.
 ```
 python segrep_training.py --resume_checkpoint ./logs/epoch=15.ckpt
+```
+
+## 🔔 Use space to seperate multiple input variables: 🔔  
+```
+python segrep_training.py --log_dir /work/project/log_dir --crop_size 256 --devices [0, 1] --resume_checkpoint ./logs/epoch=15.ckpt
+```
+
+## segrep_inference.py
+This script inference feature representations with trained encoder model.  
+
+```
+python segrep_inference.py  
+```
+
+| Input Variables           | Description                                                                            |
+| ------------------------- | -------------------------------------------------------------------------------------- |
+| `--data_path`             | Path to the dataset directory                                                          |
+| `--no_mask`               | Enable training script to proceed without masking, original SSL so to speak            |
+| `--num_workers`           | Number of workers to use                                                               |
+| `--device`                | Specify 1 device to inference                                                          |
+| `--checkpoint_dir`        | dir of checkpoint file of trained model                                                |
+  
+## `--data_path`:
+Specify the directory to your dataset, use wildcard to specify the subdirectories if they exist.
+Use wildcard to specify all the file under the directory(subdirectories), format should also be specify, 
+e.g.  
+```
+python segrep_inference.py --data_path /work/project/image_dir/*/*.png
+```
+
+## `--no_mask`:
+Add this command if you want to inference with original encoder(no masking).
+```
+python segrep.inference.py --no_mask
+```
+
+## `--num_workers`:
+Specify your designated number of workers.  
+(Default: `16`)
+```
+python segrep_inference.py --num_workers 8
+```
+
+## `--device`:
+Specify the device you want to use.
+(Default: `cuda:0`)
+```
+python segrep_inference.py --device cuda:0
+```
+
+## `--checkpoint_dir`:
+Specify the checkpoint directory to load for your encoder.
+```
+python segrep_inference.py --checkpoint_dir ./logs/epoch=15.ckpt
+```
+
+## 🔔 Use space to seperate multiple input variables: 🔔  
+```
+python segrep_inference.py --data_path /work/project/image_dir/*/*.png --num_workers 8 --device cuda:0 --checkpoint_dir ./logs/epoch=15.ckpt
 ```
