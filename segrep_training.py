@@ -42,6 +42,8 @@ def parse_args():
                         help='Directory to save logs')
     parser.add_argument('--batch_size', type=int, default=32,
                         help='Batch size (default: 32)')
+    parser.add_argument('--lars_lr', type=int, default=1.2,
+                        help='Learning rate of LARS optimizer (default: 1.2)')
     parser.add_argument('--epochs', type=int, default=23,
                         help='Number of epochs (default: 23)')
     parser.add_argument('--accelerator', type=str, 
@@ -129,7 +131,7 @@ class Dataset(BaseDataset):
 
 
 class SegRep_TiCo(pl.LightningModule):
-    def __init__(self, one_device):
+    def __init__(self, one_device, lars_lr):
         super().__init__()
         resnet = torchvision.models.resnet18()
     
@@ -137,6 +139,7 @@ class SegRep_TiCo(pl.LightningModule):
         self.backbone = nn.Sequential(*list(resnet.children())[:-2])
         self.projection_head = TiCoProjectionHead(512, 512, 128)
         self.one_device = one_device
+        self.lars_lr = lars_lr
 
         # set gather_distributed to True if training with multiple devices, else False
         if self.one_device:
@@ -180,13 +183,13 @@ class SegRep_TiCo(pl.LightningModule):
 
     def configure_optimizers(self):
         # LARS for large batch (Zhu, 2022); lr = 0.3*batch size/256 (Ciga, 2022; Stacke, 2022)
-        optimizer = flash.core.optimizers.LARS(self.parameters(), lr=1.2)
+        optimizer = flash.core.optimizers.LARS(self.parameters(), lr=self.lars_lr)
         return optimizer
 
 
 
 class Ori_TiCo(pl.LightningModule):
-    def __init__(self, one_device):
+    def __init__(self, one_device, lars_lr):
         super().__init__()
         resnet = torchvision.models.resnet18()
         
@@ -194,6 +197,7 @@ class Ori_TiCo(pl.LightningModule):
         self.backbone = nn.Sequential(*list(resnet.children())[:-2])
         self.projection_head = TiCoProjectionHead(512, 512, 128)
         self.one_device = one_device
+        self.lars_lr = lars_lr
         if self.one_device:
             GATHER_DISTRIBUTED = False
         else:
@@ -220,7 +224,7 @@ class Ori_TiCo(pl.LightningModule):
         return loss
 
     def configure_optimizers(self):
-        optimizer = flash.core.optimizers.LARS(self.parameters(), lr=1.2)
+        optimizer = flash.core.optimizers.LARS(self.parameters(), lr=lars_lr)
         return optimizer
 
 
@@ -311,9 +315,9 @@ if __name__ == "__main__":
 
     # select model class depend on args.no_mask
     if args.no_mask:
-        model = Ori_TiCo(one_device = args.one_device)
+        model = Ori_TiCo(one_device=args.one_device, lars_lr=args.lars_lr)
     else:
-        model = SegRep_TiCo(one_device = args.one_device)
+        model = SegRep_TiCo(one_device=args.one_device, lars_lr=args.lars_lr)
 
     
     dataloader = torch.utils.data.DataLoader(
