@@ -49,13 +49,8 @@ def parse_args():
                         help='Accelerators connect a Lightning Trainer to arbitrary accelerators (CPUs, GPUs, TPUs, etc), default: "gpu"')
     parser.add_argument('--devices', nargs='+', type=int, default=[0, 1, 2],
                         help='List of GPU devices (default: [0, 1, 2])')
-    parser.add_argument('--strategy', type=str, 
-                        default='ddp_find_unused_parameters_false',
-                        help='Strategy controls the model distribution across training, evaluation, and prediction (default: "ddp_find_unused_parameters_false")')
-    parser.add_argument('--no_sync_batchnorm', action='store_false',
-                        help='Trun off batchnorm. Please enable this argument while training with a single device.')
-    parser.add_argument('--no_gather_distributed', action='store_false',
-                        help='assign False to gather_distribute in TiCoLoss. Please enable this argument while training with a single device.')
+    parser.add_argument('--one_device', action='store_true',
+                        help='Toggles settings that involved in ddp training to single device training: trainer strategy, batchnorm syncing and gather distributed in loss function')
     parser.add_argument('--grad_accumulate', type=int, default=32,
                         help='Gradient accumulation (default: 32)')
     parser.add_argument('--num_workers', type=int, default=16,
@@ -134,18 +129,21 @@ class Dataset(BaseDataset):
 
 
 class SegRep_TiCo(pl.LightningModule):
-    def __init__(self):
+    def __init__(self, one_device):
         super().__init__()
         resnet = torchvision.models.resnet18()
     
         # Truncate FC and GAP layer in the network
         self.backbone = nn.Sequential(*list(resnet.children())[:-2])
         self.projection_head = TiCoProjectionHead(512, 512, 128)
+        self.one_device = one_device
 
-        # gather_distributed should be True if train with more than 1 device. 
-        # args.no_gather_distributed returns True by default, parse --no_gather_distributed in command line to set to False.
-        gather_distributed = args.no_gather_distributed
-        self.criterion = TiCoLoss(gather_distributed=gather_distributed)
+        # set gather_distributed to True if training with multiple devices, else False
+        if self.one_device:
+            GATHER_DISTRIBUTED = False
+        else:
+            GATHER_DISTRIBUTED = True
+        self.criterion = TiCoLoss(gather_distributed=GATHER_DISTRIBUTED)
 
         # avgpool downsize the input tensor by half, e.g. (x, 512, 512) -> (x, 256, 256)
         self.avgpool = torch.nn.AvgPool2d(kernel_size=3, stride=2, padding=1, ceil_mode=False)
@@ -188,14 +186,19 @@ class SegRep_TiCo(pl.LightningModule):
 
 
 class Ori_TiCo(pl.LightningModule):
-    def __init__(self):
+    def __init__(self, one_device):
         super().__init__()
         resnet = torchvision.models.resnet18()
         
         # Truncate FC and GAP layer in the network
         self.backbone = nn.Sequential(*list(resnet.children())[:-2])
         self.projection_head = TiCoProjectionHead(512, 512, 128)
-        self.criterion = TiCoLoss(gather_distributed=True)
+        self.one_device = one_device
+        if self.one_device:
+            GATHER_DISTRIBUTED = False
+        else:
+            GATHER_DISTRIBUTED = True
+        self.criterion = TiCoLoss(gather_distributed=GATHER_DISTRIBUTED)
         
     def forward(self, x):
         x = self.backbone(x)
@@ -308,9 +311,9 @@ if __name__ == "__main__":
     seed_everything(42, workers=True)
     
     if args.no_mask:
-        model = Ori_TiCo()
+        model = Ori_TiCo(one_device = args.one_device)
     else:
-        model = SegRep_TiCo()
+        model = SegRep_TiCo(one_device = args.one_device)
 
     
     dataloader = torch.utils.data.DataLoader(
@@ -325,21 +328,26 @@ if __name__ == "__main__":
     if resume_checkpoint is not None and not os.path.isfile(resume_checkpoint):
         raise FileNotFoundError(f"Checkpoint file not found: {resume_checkpoint}")
 
+    if args.one_device:
+        sync_batchnorm = False
+        strategy = "None"
+    else:
+        sync_batchnorm = True
+        strategy = "ddp_find_unused_parameters_false"
+
     if not os.path.isdir(args.log_dir):
       os.makedirs(args.log_dir)
       print("Directory created successfully")
     else:
       print("Logs will save to existed directory")
-
-    sync_batchnorm = args.no_sync_batchnorm
     
     trainer = pl.Trainer(max_epochs=args.epochs, 
                          accelerator=args.accelerator,
                          devices=args.devices,
-                         strategy=args.strategy,
+                         strategy=strategy,
                          default_root_dir=args.log_dir,
                          sync_batchnorm=sync_batchnorm,
-                         deterministic=True,
+                         deterministic=True, # insure the reporductivity
                          callbacks=[checkpoint_callback],
                          resume_from_checkpoint=resume_checkpoint,
                          accumulate_grad_batches=args.grad_accumulate)
