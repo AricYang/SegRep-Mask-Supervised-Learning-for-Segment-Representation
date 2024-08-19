@@ -237,6 +237,8 @@ def unnormalize(tensor, mean, std):
 
 if __name__ == "__main__":
     args = parse_args()
+
+    # Define image transformation
     color_jitter = T.ColorJitter(0.4, 0.4, 0.4, 0.2)
     normalize: dict = {'mean': [0.485, 0.456, 0.406], 'std': [0.229, 0.224, 0.225]} # ImageNet norm
 
@@ -262,11 +264,8 @@ if __name__ == "__main__":
         save_top_k=-1,  # Preserved every checkpoint
         every_n_epochs=1  # Save every 1 epoch
     )
-
-    resume_checkpoint = None 
-
     
-    # a list of directories to your training image, modify it if subdirectory exists, e.g. sorted(glob.glob(f'{args.data_path}/*/*.png'))
+    # a list of directories to your training image
     image_files = sorted(glob.glob({args.data_path}))
 
     
@@ -307,9 +306,10 @@ if __name__ == "__main__":
         exit()         
 
     
-    # set seef for reproducibility
+    # set seed for reproducibility
     seed_everything(42, workers=True)
-    
+
+    # select model class depend on args.no_mask
     if args.no_mask:
         model = Ori_TiCo(one_device = args.one_device)
     else:
@@ -324,10 +324,12 @@ if __name__ == "__main__":
         num_workers=args.num_workers,
     )
 
+    resume_checkpoint = None 
     resume_checkpoint = args.resume_checkpoint
     if resume_checkpoint is not None and not os.path.isfile(resume_checkpoint):
         raise FileNotFoundError(f"Checkpoint file not found: {resume_checkpoint}")
 
+    # setting sync_batchnorm and strategy for single device training
     if args.one_device:
         sync_batchnorm = False
         strategy = "None"
@@ -335,11 +337,13 @@ if __name__ == "__main__":
         sync_batchnorm = True
         strategy = "ddp_find_unused_parameters_false"
 
+    # create log_dir if not existed
     if not os.path.isdir(args.log_dir):
       os.makedirs(args.log_dir)
       print("Directory created successfully")
     else:
       print("Logs will save to existed directory")
+
     
     trainer = pl.Trainer(max_epochs=args.epochs, 
                          accelerator=args.accelerator,
