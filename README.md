@@ -57,10 +57,7 @@ python segrep_training.py
 | `--num_workers`           | Number of workers to use                                                               |
 | `--accelerator`           | Type of accelerator being used                                                         |
 | `--devices`               | Specific device(s) to use                                                              |
-| `--strategy`              | Parallel training strategy to use                                                      |
-| `--no_sync_batchnorm`     | Disable syncing of batch normalization (turn on when training with multiple devices)   |
-| `--no_gather_distributed` | Disable gathering for distributed loss function (use when training with DDP)           |
-| `--grad_accumulate`       | Number of batches to accumulate before an optimization step                            |
+| `--one_device`            | Adjust several settings involved in ddp training                                       |
 | `--debug`                 | Enable debug mode to inspect dataset output                                            |
 | `--resume_checkpoint`     | Resume training from a previously saved checkpoint                                     |
 
@@ -121,13 +118,18 @@ python segrep_training.py --accelerator gpu
 ```
 
 ## `--devices`:
-Specify the devices you want to use.  
-(Default: `[0, 1, 2]`
+Specify the devices you want to use. (reference: https://lightning.ai/docs/pytorch/stable/accelerators/gpu_basic.html)  
+(Default: `[0, 1, 2]`)
 ```
 python segrep_training.py --devices [0, 1, 2]
 ```
 
-## 🚧inputs that involve in ddp training will be simplify🚧
+## `--one_device`:
+Add this command if you are training with a single device, this line deal with settings of trainer strategy, batchnorm syncing and gather distributed of loss function.  
+If you wish to mannually modify these setting, please modify the code directly.
+```
+python segrep_training.py --one_device
+```
 
 
 ## `--grad_accumulate`:
