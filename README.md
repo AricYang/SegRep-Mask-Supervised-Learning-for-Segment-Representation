@@ -41,6 +41,7 @@ tqdm
 This script trains a SegRep-SSL model under the framework of pytorch-lightning.  
 ResNet 18, TiCo Loss, LARS optimizer is used in this script;   
 if you want to use other backbone, loss or optimizer, you'll have to modify the script.  
+Use space to seperate multiple input variables
 
 ```
 python segrep_training.py  
@@ -161,12 +162,6 @@ Resume a previous trained state with a specified path to the checkpoint file.
 python segrep_training.py --resume_checkpoint ./logs/epoch=15.ckpt
 ```
 
-## 🔔 Use space to seperate multiple input variables: 🔔  
-e.g.  
-```
-python segrep_training.py --log_dir /work/project/log_dir --crop_size 256 --devices [0, 1] --resume_checkpoint ./logs/epoch=15.ckpt
-```
-
 ## segrep_inference.py
 This script inference feature representations with trained encoder model.  
 
@@ -214,10 +209,4 @@ python segrep_inference.py --device cuda:0
 Specify the checkpoint directory to load for your encoder.
 ```
 python segrep_inference.py --checkpoint_dir ./logs/epoch=15.ckpt
-```
-
-## 🔔 Use space to seperate multiple input variables: 🔔  
-e.g.  
-```
-python segrep_inference.py --data_path /work/project/image_dir/*/*.png --num_workers 8 --device cuda:0 --checkpoint_dir ./logs/epoch=15.ckpt
 ```
