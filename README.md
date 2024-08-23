@@ -99,8 +99,8 @@ python segrep_training.py --batch_size 16
 ```
 
 `--lars_lr`:  
-Specify your learning rate for LARS optimizer. 
-reference: LARS for large batch (Zhu, 2022); lr = 0.3*batch size/256 (Ciga, 2022; Stacke, 2022)  
+Specify your learning rate for LARS optimizer.   
+(reference: LARS for large batch (Zhu, 2022); lr = 0.3*batch size/256 (Ciga, 2022; Stacke, 2022))  
 (Default: `1.2`)
 ```
 python segrep_training.py --lars_lr 1.2
@@ -128,7 +128,8 @@ python segrep_training.py --accelerator gpu
 ```
 
 `--devices`:  
-Specify the devices you want to use. (reference: https://lightning.ai/docs/pytorch/stable/accelerators/gpu_basic.html)  
+Specify the devices you want to use.   
+(reference: https://lightning.ai/docs/pytorch/stable/accelerators/gpu_basic.html)  
 (Default: `[0, 1, 2]`)
 ```
 python segrep_training.py --devices [0, 1, 2]
