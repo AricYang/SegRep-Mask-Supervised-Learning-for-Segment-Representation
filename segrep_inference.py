@@ -125,6 +125,7 @@ class Encoder(pl.LightningModule):
 
         return x
 
+    # Since this encoder only inferences instead of training, training setp and optimizer configuration doesn't need to be specified.
 
 if __name__ == "__main__":
     args = parse_args()
@@ -161,8 +162,7 @@ if __name__ == "__main__":
     )
 
     # Inference the representations
-
-    # list to apeend representations
+    # a list to store representations
     embeddings = []
     model.eval()
     with torch.no_grad():
