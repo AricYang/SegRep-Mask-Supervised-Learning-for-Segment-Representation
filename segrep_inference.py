@@ -63,13 +63,19 @@ class Dataset(BaseDataset):
             image = self.preprocessing_image(rgb_img)
             return image, 0, filepath
         else:
+            # Input image should be in shape of (H, W, 4), where 4 value channels are(R, G, B, alpha)
+            # The alpha channel stores mask information (target: 255, non-target: 0)
             rgba_img = Image.open(self.image_dir[idx])
             if (np.asarray(rgba_img)).shape[2] < 4:
                 raise ValueError(f"Expect image shape is (H, W, 4), got {np.asarray(rgba_img).shape} instead.")
             image = rgba_img.convert('RGB')
+            # Process image with normalization and ToTensor()
             image = self.preprocessing_image(image)
+            # Extract alpha value as mask and scale from 0-255 to 0-1
             mask = np.asarray(rgba_img, dtype = 'float32')[:,:,3]/255
+            # Process mask np array with ToTensor()
             mask = T.ToTensor()(mask)
+            # Image Masking(IM): Element-wise multiplication of image and mask, reduce the non-target value in image tensor to 0 and preseve the target value
             image = image * mask
     
             return (image,mask), 0, filepath
@@ -80,25 +86,41 @@ class Encoder(pl.LightningModule):
     def __init__(self):
         super().__init__()
         resnet = torchvision.models.resnet18()
+        # Truncate FC and GAP layer in the network
         self.backbone = nn.Sequential(*list(resnet.children())[:-2])
         self.projection_head = TiCoProjectionHead(512, 512, 128)
         self.criterion = TiCoLoss(gather_distributed=True)
+        # avgpool downsize the input tensor by half, e.g. (x, 512, 512) -> (x, 256, 256)
         self.avgpool = torch.nn.AvgPool2d(kernel_size=3, stride=2, padding=1, ceil_mode=False)
 
     
     def segrep_forward(self, x, y):
+        # Pass image tensor through the network, generate feature maps. Shape: (3, H, W) -> (512, H/(2**5), W/(2**5)) 
         x = self.backbone(x)
+
+        # Downsize the mask tensor x times (5 times for ResNet 18) to match the size of feature maps. Shape (1, H, W) -> (1, H/(2**5), W/(2**5))
         for i in range(5):
             y = self.avgpool(y)
+            
+        # Feature Masking(FM): Element-wise multiplication of feature maps and downsized mask, 
+        # reduce the non-target activations in feature maps and preseve the target activations.
+        # Globally sum each feature map into a single feature value. Shape (512, H/(2**5), W/(2**5)) -> (512, 1, 1)
         x = (x*y).sum([2,3])
+
+        # L2 normalization the vector (Euclidean distance to 1)
         x = F.normalize(x, p=2, dim=1)
         
         return x
 
     
     def ori_forward(self, x):    
+        # Pass image tensor through the network, generate feature maps. Shape: (3, H, W) -> (512, H/(2**5), W/(2**5)) 
         x = self.backbone(x)
+        
+        # Globally sum each feature map into a single feature value. Shape (512, H/(2**5), W/(2**5)) -> (512, 1, 1)
         x = x.sum([2,3])
+        
+        # L2 normalization the vector (Euclidean distance to 1)
         x = F.normalize(x, p=2, dim=1)
 
         return x
@@ -106,13 +128,13 @@ class Encoder(pl.LightningModule):
 
 if __name__ == "__main__":
     args = parse_args()
-    normalize: dict = {'mean': [0.485, 0.456, 0.406], 'std': [0.229, 0.224, 0.225]}
+    normalize: dict = {'mean': [0.485, 0.456, 0.406], 'std': [0.229, 0.224, 0.225]} # ImageNet norm
     transform_image = torchvision.transforms.Compose([
         T.ToTensor(),
         T.Normalize(mean=normalize["mean"], std=normalize["std"])
     ])
 
-    # Modify it if subdirectory exists, e.g. sorted(glob.glob(f'{args.data_path}/*/*.png'))
+    # a list of directories to your inferencing image
     image_dir = sorted(glob.glob('{args.data_path}'))
 
     dataset = Dataset(image_dir,
@@ -134,11 +156,13 @@ if __name__ == "__main__":
     dataloader = torch.utils.data.DataLoader(
         dataset,
         batch_size=1,
-        shuffle=False,
+        shuffle=False, # No shuffle to ensure index orders
         num_workers=args.num_workers,
     )
 
     # Inference the representations
+
+    # list to apeend representations
     embeddings = []
     model.eval()
     with torch.no_grad():
