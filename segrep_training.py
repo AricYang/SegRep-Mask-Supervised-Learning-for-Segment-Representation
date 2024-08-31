@@ -248,9 +248,9 @@ if __name__ == "__main__":
 
     transform_position = torchvision.transforms.Compose([
         T.RandomResizedCrop(size=args.crop_size, scale=(0.3, 1.0)),
-        random_rotation_transform(rr_prob=0.5, rr_degrees = None),
-        torchvision.transforms.RandomHorizontalFlip(p=0.5),
-        torchvision.transforms.RandomVerticalFlip(p=0.5),
+        T.RandomApply([T.RandomRotation((90, 90))], p=0.5),
+        T.RandomHorizontalFlip(p=0.5),
+        T.RandomVerticalFlip(p=0.5),
     ])
 
     transform_color = torchvision.transforms.Compose([
